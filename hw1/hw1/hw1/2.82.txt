@@ -1,0 +1,13 @@
+A. It yields 0 if x == INT_MIN because -x would be truncated back to INT_MIN.
+
+B. It always yields 1 because (x + y) << 4 is equivalent to (x + y) * 16, thus the left hand side equates to x * (16 - 1) + y * (16 + 1) which is essentially 17 * y = 15 * x.
+
+C. It always yields 1. For any unsigned number z, ~z always equates to (-1 - z). ~(x + y) therefore equates to -1 - x - y, which can be also written as (-1 - x) + (-1 - y) + 1, that is ~x + ~y + 1.
+
+D. It always yields 1. Since the bitwise representations of numbers do not change during type casting, ux - uy == (unsigned)(x - y). Meanwhile, multiplying an unsigned number z by -1 gives 2^w - z because -1 is type casted to 2^w - 1. Thus, -(unsigned)(y - x) == 2^w - (unsigned)(y - x) == (unsigned)(x - y).
+
+E. It always yields 1 because left shift is logical. The net effect of left hand side is to replace the 2 least significant bits of x by 0, giving a number that is always smaller or equal to x.
+
+F. It always yields 1. Let x be the bit vector[xw, x(w-1),...x1, x0]. On left hand side, x >> 1 gives [xw, xw,...x1]. On right hand side, (ux >> 1) gives [0, xw,...x1]. (-1 << 31) gives INT_MIN which is [1, 0, 0,...0], thus (ux & INT_MIN) is [xw, 0,...0]. Adding this to [0, xw,...x1] gives [xw, xw,...x1] which is exactly the left hand side.
+
+G. It yields 0 when x is negative. Let x be the bit vector[xw, x(w-1),...x1, x0]. The right hand side equates to [0,...x5, x4, x3, x2, x1, x0], which is positive because the most significant bit is 0. However, when x is negative the left hand side will give a negative value.

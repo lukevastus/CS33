@@ -1,0 +1,2 @@
+A. size_t is actually unsigned. For maxbytes - sizeof(val), the first operand is signed while the second is unsigned, thus maxbytes will be cast to unsigned. The result of the operation would be unsigned, which is always >= 0.
+B. Change the conditional test to  if (maxbytes >= sizeof(val))
