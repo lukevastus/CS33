@@ -1,0 +1,26 @@
+3.67
+
+A. M[%rsp] : x
+   M[%rsp + 8] : y
+   M[%rsp + 16] : &z
+   M[%rsp + 24] : z
+
+B. x, y, &z, and a pointer to M[%rsp + 64]
+
+C. x, y and &z are already on the stack when process is called. It directly accesses them from the corresponding locations on the stack (since when process is called %rsp is decremented by 8, from the frame of process the relative locations of these values becomes %rsp + 8, %rsp + 16, and %rsp + 24 respectively)
+
+D. Using the aforementioned pointer to M[%rsp + 64] (from process's point of view it is M[%rsp + 72]), it stores r.u[0], r.u[1] and r.q onto the stack at locations M[%rsp + 64], M[%rsp + 72], M[%rsp + 80] respectively
+
+E. M[%rsp] : x
+   M[%rsp + 8] : y
+   M[%rsp + 16] : &z
+   M[%rsp + 24] : z
+   ...
+   M[%rsp + 64] : y
+   M[%rsp + 72] : x
+   M[%rsp + 80] : z
+
+F. Passing: elements of a struct are stored separately on the stack
+   Returning: after storing the elements of the struct onto the stack, a pointer pointing to the struct is returned
+
+

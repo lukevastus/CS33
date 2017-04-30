@@ -1,0 +1,28 @@
+3.67
+
+A. M[%rsp] : x
+   M[%rsp + 8] : y
+   M[%rsp + 16] : &z
+   M[%rsp + 24] : z
+
+B. %rsp + 64, or the address of M[%rsp + 64]
+
+C. x, y and &z are already on the stack when process is called. It directly accesses them from the corresponding locations on the stack (since when process is called %rsp is decremented by 8, from the frame of process the relative locations of these values becomes %rsp + 8, %rsp + 16, and %rsp + 24 respectively)
+
+D. Using the aforementioned address to M[%rsp + 64] (from process's point of view it is M[%rsp + 72]), it stores r.u[0], r.u[1] and r.q onto the stack at locations M[%rsp + 64], M[%rsp + 72], M[%rsp + 80] respectively
+
+E. M[%rsp] : x
+   M[%rsp + 8] : y
+   M[%rsp + 16] : &z
+   M[%rsp + 24] : z
+   ...
+   M[%rsp + 64] : y
+   M[%rsp + 72] : x
+   M[%rsp + 80] : z
+   	  
+   Eval accesses elements of r by getting the values at M[%rsp + 64], M[%rsp + 72], and M[%rsp + 80]
+
+F. Passing: the address of (the first element of) the struct is passed
+   Returning: after the elements of the struct are set, the address of the struct is returned
+
+

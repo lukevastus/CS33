@@ -1,0 +1,12 @@
+Part I. Gather instruction traces
+
+1. On lnxsrv07, enter the command:
+gdb ~eggert/bin64/bin/emacs-24.5
+
+2. Run the executable without any breakpoints by entering: 
+(gdb) run -batch -eval '(print(* 6997 -4398042316799 179))'
+
+3. Set a breakpoint at Ftimes function by:
+(gdb) break Ftimes
+
+ 
