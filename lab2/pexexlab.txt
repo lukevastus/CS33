@@ -1,12 +1,35 @@
 Part I. Gather instruction traces
 
 1. On lnxsrv07, enter the command:
-gdb ~eggert/bin64/bin/emacs-24.5
+gdb ~eggert/bin64/bin/emacs-25.2
+(gdb) set disassemble-next-line on
 
-2. Run the executable without any breakpoints by entering: 
-(gdb) run -batch -eval '(print(* 6997 -4398042316799 179))'
-
-3. Set a breakpoint at Ftimes function by:
+2. Set a breakpoint at Ftimes funciton by:
 (gdb) break Ftimes
+
+The shell output: Breakpoint 1 at 0x547ad0: file data.c, line 2815.
+
+3. Run the executable by entering: 
+(gdb) run -Q -batch -eval '(print (* 1250284240 -1844255039))'
+
+The program runs and breaks at the beginning of Ftimes function
+
+4. Repeatedly:
+   use stepi to get the disassembled code
+   use info registers to get the values in the general purpose registers
+
+5. When the first retq command is met, enter:
+   continue
+   The shell output: 
+
+   Continuing.
+
+2305843008625102544
+[Thread 0x7ffff7faaa40 (LWP 5233) exited]
+[Inferior 1 (process 5233) exited normally]
+
+6. Rerun the program using run -Q -batch -eval '(print (* 1250284240 -1844255039))' and continue to check the answer. The same output was produced. 
+
+
 
  

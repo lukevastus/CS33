@@ -1,0 +1,6 @@
+547ad0	48 89 f2	mov %rsi,%rdx	rdx=7fffffffd750
+547ad3	48 89 fe	mov %rdi,%rsi	rsi=2
+547ad6	bf 02 00 00 00	mov $0x2,%edi	edi=2
+547adb	e9 f0 fc ff ff	jmpq 0x5477d0 <arith_driver>	rip=5477d0
+5477d0	83 ff 02 cmp $0x2,%edi
+
