@@ -31,5 +31,140 @@ The program runs and breaks at the beginning of Ftimes function
 6. Rerun the program using run -Q -batch -eval '(print (* 1250284240 -1844255039))' and continue to check the answer. The same output was produced. 
 
 
+Part II. Examine integer overflow handling
 
+1. On linuxsrv07, write the testovf function to a file named test.c
+
+2. Use the command:
+$/usr/local/cs/bin/gcc -O2 -S test.c to compile the file. 
+
+3. View the resulting assembly file test.s. The testovf function appears to be:
+testovf:
+.LFB0:
+        .cfi_startproc
+        xorl    %eax, %eax
+        ret
+        .cfi_endproc
+
+4. Recompile using $/usr/local/cs/bin/gcc -O2 -fwrapv -S test.c. The testovf function now appears to be:
+testovf:
+.LFB0:
+        .cfi_startproc
+        movabsq $9223372036854775807, %rax
+        addq    %rdi, %rax
+        cmpq    %rax, %rdi
+        setg    %al
+        ret
+        .cfi_endproc
+
+5. Recompile using $/usr/local/cs/bin/gcc -O2 -fsanitize=undefined -S test.c. The assembly file now includes:
+testovf:
+.LFB0:
+        .cfi_startproc
+        pushq   %rbp
+        .cfi_def_cfa_offset 16
+        .cfi_offset 6, -16
+        pushq   %rbx
+        .cfi_def_cfa_offset 24
+        .cfi_offset 3, -24
+        movabsq $9223372036854775807, %rdx
+        movq    %rdi, %rbp
+        movq    %rdi, %rbx
+        subq    $8, %rsp
+        .cfi_def_cfa_offset 32
+        addq    %rdx, %rbp
+        jo      .L6
+.L2:
+        cmpq    %rbp, %rbx
+        setg    %al
+        addq    $8, %rsp
+        .cfi_remember_state
+        .cfi_def_cfa_offset 24
+        popq    %rbx
+        .cfi_def_cfa_offset 16
+        popq    %rbp
+        .cfi_def_cfa_offset 8
+        ret
+.L6:
+        .cfi_restore_state
+        movq    %rdi, %rsi
+        movl    $.Lubsan_data0, %edi
+        call    __ubsan_handle_add_overflow
+        jmp     .L2
+        .cfi_endproc
  
+
+Part III. A few more questions
+
+1. Run the executable by entering:
+(gdb) run -Q -batch -eval '(print (format-time-string "%Y-%m-%d %H:%M:%S %Z" nil (concat (make-string 1000 ?X) "0")))'
+
+The following output was produced:
+
+Starting program: /u/cs/fac/eggert/bin64/bin/emacs-25.2 -Q -batch -eval '(print (format-time-string "%Y-%m-%d %H:%M:%S %Z" nil (concat (make-string 1000 ?X) "0")))'
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib64/libthread_db.so.1".
+[New Thread 0x7fffe3174700 (LWP 22860)]
+
+Program received signal SIGSEGV, Segmentation fault.
+0x00007ffff173949b in __strcpy_sse2_unaligned () from /lib64/libc.so.6
+
+2. Enter the following command:
+(gdb) backtrace
+
+The stack information is displayed: 
+ 
+#0  0x00007ffff173949b in __strcpy_sse2_unaligned () at /lib64/libc.so.6
+#1  0x00000000005558f2 in emacs_setenv_TZ (tzstring=0x14835e9 'X' <repeats 135 times>, "T", 'X' <repeats 64 times>...) at editfns.c:2428
+#2  0x00000000005d7f28 in revert_tz (tz=0x14835e0) at time_rz.c:223
+#3  0x00000000005d7f28 in revert_tz (tz=tz@entry=0x14835e0)
+    at time_rz.c:268
+#4  0x00000000005d82bc in localtime_rz (tz=0x14831e0, t=0x7fffffffc6e8, tm=0x7fffffffd6d0) at time_rz.c:289
+#5  0x000000000055632a in format_time_string (tm=0x7fffffffc6b0, t=0x7fffffffc6e8, tz=<optimized out>) at editfns.c:107
+#6  0x000000000055632a in format_time_string (format=0x1475178 "%Y-%m-%d %H:%M:%S %Z", formatlen=20, t=..., zone=zone@entry=21507828, tmp=tmp@entry=0x7fffffffd6d0) at editfns.c:2070
+#7  0x0000000000556582 in Fformat_time_string (format_string=<optimized out>, timeval=<optimized out>, zone=21507828) at editfns.c:2049
+#8  0x000000000055ac25 in eval_sub (form=<optimized out>) at eval.c:2178
+#9  0x000000000055aa34 in eval_sub (form=form@entry=17131571)
+    at eval.c:2160
+#10 0x000000000055df7c in Feval (form=17131571, lexical=<optimized out>)
+    at eval.c:1994
+#11 0x000000000055b76a in Ffuncall (nargs=2, args=args@entry=0x7fffffffd9c0) at eval.c:2702
+#12 0x000000000058e53b in exec_byte_code (bytestr=<optimized out>, vector=<optimized out>, maxdepth=<optimized out>, args_template=<optimized out>, nargs=nargs@entry=1, args=<optimized out>, args@entry=0x7fffffffd9c0)
+    at bytecode.c:880
+#13 0x000000000055b2e6 in funcall_lambda (fun=9908148, nargs=nargs@entry=1, arg_vector=0x7fffffffd9c0, arg_vector@entry=0x7fffffffdb60)
+    at eval.c:2863
+#14 0x000000000055b59b in Ffuncall (nargs=2, args=args@entry=0x7fffffffdb58) at eval.c:2760
+#15 0x000000000058e53b in exec_byte_code (bytestr=<optimized out>, vector=<optimized out>, maxdepth=<optimized out>, args_template=<optimized out>, nargs=nargs@entry=0, args=<optimized out>, args@entry=0x7fffffffdb58)
+    at bytecode.c:880
+#16 0x000000000055b2e6 in funcall_lambda (fun=9885124, nargs=nargs@entry=0, arg_vector=0x7fffffffdb58, arg_vector@entry=0x7fffffffdd58)
+    at eval.c:2863
+#17 0x000000000055b59b in Ffuncall (nargs=1, args=args@entry=0x7fffffffdd50) at eval.c:2760
+#18 0x000000000058e53b in exec_byte_code (bytestr=<optimized out>, vector=<optimized out>, maxdepth=<optimized out>, args_template=<optimized out>, nargs=nargs@entry=0, args=<optimized out>, args@entry=0x7fffffffdd50)
+    at bytecode.c:880
+#19 0x000000000055b2e6 in funcall_lambda (fun=9881132, 
+    fun@entry=9881085, nargs=nargs@entry=0, arg_vector=0x7fffffffdd50, 
+    arg_vector@entry=0x7fffffffde60) at eval.c:2863
+#20 0x000000000055a698 in apply_lambda (fun=9881085, args=<optimized out>, count=count@entry=4) at eval.c:2800
+#21 0x000000000055a9af in eval_sub (form=form@entry=17633155)
+    at eval.c:2247
+---Type <return> to continue, or q <return> to quit---
+#22 0x000000000055df7c in Feval (form=17633155, lexical=<optimized out>)
+    at eval.c:1994
+#23 0x0000000000559f72 in internal_condition_case (bfun=bfun@entry=0x4ea5f0 <top_level_2>, handlers=handlers@entry=19104, hfun=hfun@entry=0x4eeeb0 <cmd_error>) at eval.c:1315
+#24 0x00000000004ecbfc in top_level_1 (ignore=ignore@entry=0)
+    at keyboard.c:1129
+#25 0x0000000000559f13 in internal_catch (tag=tag@entry=45936, func=func@entry=0x4ecba0 <top_level_1>, arg=arg@entry=0) at eval.c:1080
+#26 0x00000000004ea588 in command_loop () at keyboard.c:1090
+#27 0x00000000004eeab7 in recursive_edit_1 () at keyboard.c:697
+#28 0x00000000004eedf8 in Frecursive_edit () at keyboard.c:768
+#29 0x000000000041907b in main (argc=5, argv=0x7fffffffe1d8)
+    at emacs.c:1629
+
+3. Use (gdb) kill to kill the process. Use (gdb) set disassemble-next-line on to display the assembly code. Then, re-run the executable using the same command in step 1. In addition to the output in step 1, the following message is displayed:
+
+=> 0x00007ffff173949b <__strcpy_sse2_unaligned+411>:	f3 0f 7f 7f f0	movdqu %xmm7,-0x10(%rdi)
+
+4. Use (gdb) print $rdi to get the value in %rdi, which is shown to be: 21606410. Then, use (gdb) x *0x21606400 to get the memory at the distination specified by the assembly operation above. The following output is produced:
+
+0x21606410:	Cannot access memory at address 0x21606410
+
