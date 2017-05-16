@@ -6,4 +6,4 @@
 
 4. The same result should be produced because -fwrapv and the macro in question 3 both let arithmetic operations wrap around. 
 
-5. A "segmentation fault" is produced.  
+5. A "segmentation fault" is produced because the C library function __strcpy_sse2_unaligned (called by emacs' function emacs_setenv_TZ) attempts to access memory at an undesirable location. The instruction in the assembly code is movdqu %xmm7,-0x10(%rdi); however according to gdb at this point the memory address specified by the second operand (0x21606410) cannot be accessed.  

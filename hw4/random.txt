@@ -1,0 +1,9 @@
+1. It always yields 1 regardless of -fwrapv. On LHS, converting int to float never overflows. On RHS, converting dx to float also never overflows because the value represented by dx is guaranteed to be within range of float. If LHS is rounded, RHS will be rounded to exactly the same value. 
+
+2. It yields 0 when x == y == -2147483648, regardless of -fwrapv. In this case x - y will overflow but dx - dy will not since double has greater range than int. With -fwrapv RHS is wrapped to 0.0; without -fwrapv RHS exhibits undefined behavior. Either way, LHS gives the correct mathematical value and is not equal to RHS. 
+
+3. It always yields 1 regardless of -fwrapv because since x, y, z are within the range of int, their mathematical sum is guaranteed to be within the range of double and can be presented precisely without rounding (x + y + z can be represented in 33 bits maximum while the fraction of IEEE double has 52 bits).
+
+4. It yields 0 when x = 2147483647, y = 2147483647, z = 9999999, regardless of -fwrapv. (dx * dy) and (dy * dz) both cannot be represented precisely and are rounded differently, leading to different final values. 
+
+5. It yields 0 when x = 0 and y != 0, regardless of -fwrapv. In this case LHS evaluates to NaN while RHS evaluates to 1.    
