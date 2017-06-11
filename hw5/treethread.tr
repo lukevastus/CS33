@@ -1,0 +1,163 @@
+45849 execve("./treethread", ["./treethread", "3"], [/* 34 vars */]) = 0
+45849 brk(0)                            = 0x1aaa000
+45849 mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f10ffc0f000
+45849 access("/etc/ld.so.preload", R_OK) = -1 ENOENT (No such file or directory)
+45849 open("/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 3
+45849 fstat(3, {st_mode=S_IFREG|0644, st_size=148175, ...}) = 0
+45849 mmap(NULL, 148175, PROT_READ, MAP_PRIVATE, 3, 0) = 0x7f10ffbea000
+45849 close(3)                          = 0
+45849 open("/lib64/libpthread.so.0", O_RDONLY|O_CLOEXEC) = 3
+45849 read(3, "\177ELF\2\1\1\0\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0\240l\0\0\0\0\0\0"..., 832) = 832
+45849 fstat(3, {st_mode=S_IFREG|0755, st_size=143944, ...}) = 0
+45849 mmap(NULL, 2208864, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f10ff7d5000
+45849 mprotect(0x7f10ff7ec000, 2093056, PROT_NONE) = 0
+45849 mmap(0x7f10ff9eb000, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x16000) = 0x7f10ff9eb000
+45849 mmap(0x7f10ff9ed000, 13408, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f10ff9ed000
+45849 close(3)                          = 0
+45849 open("/lib64/libc.so.6", O_RDONLY|O_CLOEXEC) = 3
+45849 read(3, "\177ELF\2\1\1\3\0\0\0\0\0\0\0\0\3\0>\0\1\0\0\0@\34\2\0\0\0\0\0"..., 832) = 832
+45849 fstat(3, {st_mode=S_IFREG|0755, st_size=2118128, ...}) = 0
+45849 mmap(NULL, 3932672, PROT_READ|PROT_EXEC, MAP_PRIVATE|MAP_DENYWRITE, 3, 0) = 0x7f10ff414000
+45849 mprotect(0x7f10ff5ca000, 2097152, PROT_NONE) = 0
+45849 mmap(0x7f10ff7ca000, 24576, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_DENYWRITE, 3, 0x1b6000) = 0x7f10ff7ca000
+45849 mmap(0x7f10ff7d0000, 16896, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_FIXED|MAP_ANONYMOUS, -1, 0) = 0x7f10ff7d0000
+45849 close(3)                          = 0
+45849 mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f10ffbe9000
+45849 mmap(NULL, 8192, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f10ffbe7000
+45849 arch_prctl(ARCH_SET_FS, 0x7f10ffbe7740) = 0
+45849 mprotect(0x7f10ff7ca000, 16384, PROT_READ) = 0
+45849 mprotect(0x7f10ff9eb000, 4096, PROT_READ) = 0
+45849 mprotect(0x600000, 4096, PROT_READ) = 0
+45849 mprotect(0x7f10ffc10000, 4096, PROT_READ) = 0
+45849 munmap(0x7f10ffbea000, 148175)    = 0
+45849 set_tid_address(0x7f10ffbe7a10)   = 45849
+45849 set_robust_list(0x7f10ffbe7a20, 24) = 0
+45849 rt_sigaction(SIGRTMIN, {0x7f10ff7db780, [], SA_RESTORER|SA_SIGINFO, 0x7f10ff7e4370}, NULL, 8) = 0
+45849 rt_sigaction(SIGRT_1, {0x7f10ff7db810, [], SA_RESTORER|SA_RESTART|SA_SIGINFO, 0x7f10ff7e4370}, NULL, 8) = 0
+45849 rt_sigprocmask(SIG_UNBLOCK, [RTMIN RT_1], NULL, 8) = 0
+45849 getrlimit(RLIMIT_STACK, {rlim_cur=8192*1024, rlim_max=RLIM64_INFINITY}) = 0
+45849 mmap(NULL, 8392704, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_STACK, -1, 0) = 0x7f10fec13000
+45849 brk(0)                            = 0x1aaa000
+45849 brk(0x1acb000)                    = 0x1acb000
+45849 brk(0)                            = 0x1acb000
+45849 mprotect(0x7f10fec13000, 4096, PROT_NONE) = 0
+45849 clone(child_stack=0x7f10ff412fb0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7f10ff4139d0, tls=0x7f10ff413700, child_tidptr=0x7f10ff4139d0) = 45850
+45850 set_robust_list(0x7f10ff4139e0, 24 <unfinished ...>
+45849 mmap(NULL, 8392704, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_STACK, -1, 0 <unfinished ...>
+45850 <... set_robust_list resumed> )   = 0
+45849 <... mmap resumed> )              = 0x7f10fe412000
+45850 mmap(NULL, 8392704, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_STACK, -1, 0 <unfinished ...>
+45849 mprotect(0x7f10fe412000, 4096, PROT_NONE <unfinished ...>
+45850 <... mmap resumed> )              = 0x7f10fdc11000
+45849 <... mprotect resumed> )          = 0
+45849 clone( <unfinished ...>
+45850 mmap(NULL, 134217728, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_NORESERVE, -1, 0) = 0x7f10f5c11000
+45850 munmap(0x7f10f5c11000, 37679104 <unfinished ...>
+45849 <... clone resumed> child_stack=0x7f10fec11fb0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7f10fec129d0, tls=0x7f10fec12700, child_tidptr=0x7f10fec129d0) = 45851
+45851 set_robust_list(0x7f10fec129e0, 24 <unfinished ...>
+45850 <... munmap resumed> )            = 0
+45849 futex(0x7f10ff4139d0, FUTEX_WAIT, 45850, NULL <unfinished ...>
+45851 <... set_robust_list resumed> )   = 0
+45850 munmap(0x7f10fc000000, 29429760 <unfinished ...>
+45851 mmap(NULL, 8392704, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_STACK, -1, 0 <unfinished ...>
+45850 <... munmap resumed> )            = 0
+45850 mprotect(0x7f10f8000000, 135168, PROT_READ|PROT_WRITE <unfinished ...>
+45851 <... mmap resumed> )              = 0x7f10fd410000
+45850 <... mprotect resumed> )          = 0
+45850 mprotect(0x7f10fdc11000, 4096, PROT_NONE <unfinished ...>
+45851 mmap(NULL, 134217728, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_NORESERVE, -1, 0) = 0x7f10f0000000
+45850 <... mprotect resumed> )          = 0
+45851 munmap(0x7f10f4000000, 67108864 <unfinished ...>
+45850 clone( <unfinished ...>
+45851 <... munmap resumed> )            = 0
+45851 mprotect(0x7f10f0000000, 135168, PROT_READ|PROT_WRITE <unfinished ...>
+45850 <... clone resumed> child_stack=0x7f10fe410fb0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7f10fe4119d0, tls=0x7f10fe411700, child_tidptr=0x7f10fe4119d0) = 45852
+45852 set_robust_list(0x7f10fe4119e0, 24 <unfinished ...>
+45851 <... mprotect resumed> )          = 0
+45852 <... set_robust_list resumed> )   = 0
+45850 mmap(NULL, 8392704, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_STACK, -1, 0 <unfinished ...>
+45851 mprotect(0x7f10fd410000, 4096, PROT_NONE) = 0
+45850 <... mmap resumed> )              = 0x7f10fcc0f000
+45851 clone( <unfinished ...>
+45852 fstat(1,  <unfinished ...>
+45850 mprotect(0x7f10fcc0f000, 4096, PROT_NONE <unfinished ...>
+45852 <... fstat resumed> {st_mode=S_IFCHR|0620, st_rdev=makedev(136, 30), ...}) = 0
+45850 <... mprotect resumed> )          = 0
+45852 mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0 <unfinished ...>
+45853 set_robust_list(0x7f10fdc109e0, 24 <unfinished ...>
+45851 <... clone resumed> child_stack=0x7f10fdc0ffb0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7f10fdc109d0, tls=0x7f10fdc10700, child_tidptr=0x7f10fdc109d0) = 45853
+45850 clone( <unfinished ...>
+45853 <... set_robust_list resumed> )   = 0
+45852 <... mmap resumed> )              = 0x7f10ffc0e000
+45851 mmap(NULL, 8392704, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_STACK, -1, 0 <unfinished ...>
+45853 futex(0x7f10ff7d0a00, FUTEX_WAIT_PRIVATE, 2, NULL <unfinished ...>
+45851 <... mmap resumed> )              = 0x7f10fc40e000
+45854 set_robust_list(0x7f10fd40f9e0, 24 <unfinished ...>
+45851 mprotect(0x7f10fc40e000, 4096, PROT_NONE <unfinished ...>
+45850 <... clone resumed> child_stack=0x7f10fd40efb0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7f10fd40f9d0, tls=0x7f10fd40f700, child_tidptr=0x7f10fd40f9d0) = 45854
+45854 <... set_robust_list resumed> )   = 0
+45852 write(1, "Thread 3 done\n", 14 <unfinished ...>
+45854 futex(0x7f10ff7d0a00, FUTEX_WAIT_PRIVATE, 2, NULL <unfinished ...>
+45851 <... mprotect resumed> )          = 0
+45850 futex(0x7f10fe4119d0, FUTEX_WAIT, 45852, NULL <unfinished ...>
+45852 <... write resumed> )             = 14
+45851 clone( <unfinished ...>
+45852 futex(0x7f10ff7d0a00, FUTEX_WAKE_PRIVATE, 1 <unfinished ...>
+45855 set_robust_list(0x7f10fcc0e9e0, 24 <unfinished ...>
+45851 <... clone resumed> child_stack=0x7f10fcc0dfb0, flags=CLONE_VM|CLONE_FS|CLONE_FILES|CLONE_SIGHAND|CLONE_THREAD|CLONE_SYSVSEM|CLONE_SETTLS|CLONE_PARENT_SETTID|CLONE_CHILD_CLEARTID, parent_tidptr=0x7f10fcc0e9d0, tls=0x7f10fcc0e700, child_tidptr=0x7f10fcc0e9d0) = 45855
+45853 <... futex resumed> )             = 0
+45852 <... futex resumed> )             = 1
+45851 futex(0x7f10fdc109d0, FUTEX_WAIT, 45853, NULL <unfinished ...>
+45855 <... set_robust_list resumed> )   = 0
+45853 write(1, "Thread 5 done\n", 14 <unfinished ...>
+45855 futex(0x7f10ff7d0a00, FUTEX_WAIT_PRIVATE, 2, NULL <unfinished ...>
+45852 madvise(0x7f10fdc11000, 8368128, MADV_DONTNEED <unfinished ...>
+45853 <... write resumed> )             = 14
+45853 futex(0x7f10ff7d0a00, FUTEX_WAKE_PRIVATE, 1 <unfinished ...>
+45854 <... futex resumed> )             = 0
+45853 <... futex resumed> )             = 1
+45854 write(1, "Thread 4 done\n", 14 <unfinished ...>
+45853 madvise(0x7f10fd410000, 8368128, MADV_DONTNEED <unfinished ...>
+45854 <... write resumed> )             = 14
+45853 <... madvise resumed> )           = 0
+45854 futex(0x7f10ff7d0a00, FUTEX_WAKE_PRIVATE, 1 <unfinished ...>
+45853 _exit(0)                          = ?
+45854 <... futex resumed> )             = 1
+45852 <... madvise resumed> )           = 0
+45855 <... futex resumed> )             = 0
+45854 madvise(0x7f10fcc0f000, 8368128, MADV_DONTNEED <unfinished ...>
+45853 +++ exited with 0 +++
+45855 write(1, "Thread 6 done\n", 14 <unfinished ...>
+45852 _exit(0)                          = ?
+45851 <... futex resumed> )             = 0
+45854 <... madvise resumed> )           = 0
+45855 <... write resumed> )             = 14
+45854 _exit(0)                          = ?
+45852 +++ exited with 0 +++
+45855 futex(0x7f10ff7d0a00, FUTEX_WAKE_PRIVATE, 1 <unfinished ...>
+45851 futex(0x7f10fcc0e9d0, FUTEX_WAIT, 45855, NULL <unfinished ...>
+45850 <... futex resumed> )             = 0
+45855 <... futex resumed> )             = 0
+45854 +++ exited with 0 +++
+45850 write(1, "Thread 1 done\n", 14 <unfinished ...>
+45855 madvise(0x7f10fc40e000, 8368128, MADV_DONTNEED) = 0
+45850 <... write resumed> )             = 14
+45855 _exit(0)                          = ?
+45850 madvise(0x7f10fec13000, 8368128, MADV_DONTNEED <unfinished ...>
+45855 +++ exited with 0 +++
+45851 <... futex resumed> )             = 0
+45850 <... madvise resumed> )           = 0
+45851 write(1, "Thread 2 done\n", 14 <unfinished ...>
+45850 _exit(0)                          = ?
+45851 <... write resumed> )             = 14
+45850 +++ exited with 0 +++
+45849 <... futex resumed> )             = 0
+45851 madvise(0x7f10fe412000, 8368128, MADV_DONTNEED) = 0
+45849 munmap(0x7f10fd410000, 8392704 <unfinished ...>
+45851 _exit(0)                          = ?
+45849 <... munmap resumed> )            = 0
+45851 +++ exited with 0 +++
+45849 munmap(0x7f10fdc11000, 8392704)   = 0
+45849 write(1, "Thread 0 done\n", 14)   = 14
+45849 exit_group(0)                     = ?
+45849 +++ exited with 0 +++

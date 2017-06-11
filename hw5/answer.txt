@@ -1,0 +1,9 @@
+12.18
+
+A. It is Unsafe.
+B. It is Safe.
+C. it is Unsafe.
+
+12.24
+
+The functions are reentrant because they do not use any static or global data, as long as they are not operating on the same address rp or the same address usrbuf in parallel.

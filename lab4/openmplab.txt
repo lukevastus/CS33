@@ -1,0 +1,108 @@
+1. Copy the file openmplab.tgz onto linuxsrv07. Unzip using tar -xvzf.
+
+2. With command make seq GPROF=1, the executable seq is produced.
+   Run the executable using ./seq, the following output is produced:
+
+FUNC TIME : 0.474639
+TOTAL TIME : 2.495095
+
+   Therefore, the program must be optimized so that FUNC TIME is ~0.13
+
+3. Using command gprof seq, the following output is produced:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total
+ time   seconds   seconds    calls  ms/call  ms/call  name
+ 67.33      0.39     0.39       15    26.04    27.43  func1
+ 18.99      0.50     0.11  5177344     0.00     0.00  rand2
+  5.18      0.53     0.03       15     2.00     2.67  func5
+  3.45      0.55     0.02        1    20.03    20.03  imdilateDisk
+  1.73      0.56     0.01   491520     0.00     0.00  findIndexBin
+  1.73      0.57     0.01       15     0.67     0.67  func2
+  1.73      0.58     0.01                             sequence
+  0.00      0.58     0.00   983042     0.00     0.00  round
+  0.00      0.58     0.00       16     0.00     0.00  dilateMatrix
+  0.00      0.58     0.00       15     0.00     0.00  func3
+  0.00      0.58     0.00       15     0.00     0.00  func4
+  0.00      0.58     0.00       15     0.00     0.00  rand1
+  0.00      0.58     0.00        2     0.00     0.00  get_time
+  0.00      0.58     0.00        1     0.00    89.23  addSeed
+  0.00      0.58     0.00        1     0.00     0.00  elapsed_time
+  0.00      0.58     0.00        1     0.00     0.00  fillMatrix
+  0.00      0.58     0.00        1     0.00     0.00  func0
+  0.00      0.58     0.00        1     0.00     0.00  getNeighbors
+
+   func1 takes 67% of the time, and it will be the primary target of optimization.
+
+
+4. Use the following shell script to automate the testing process:
+
+#!/bin/bash
+
+make clean
+make omp MTRACE=1
+./omp
+make check
+make checkmem
+
+
+5. After modifying func.c, use the shell script above to test it, the following output is produced:
+
+rm -f seq omp filter output.txt mtrace.out gprof.out
+gcc -o omp  -O3 -DMTRACE -fopenmp filter.c main.c func.c util.c -lm
+FUNC TIME : 0.053060
+TOTAL TIME : 2.150240
+gcc -o omp  -O3 -fopenmp filter.c main.c func.c util.c -lm
+cp omp filter
+./filter
+FUNC TIME : 0.052120
+TOTAL TIME : 2.287539
+diff --brief correct.txt output.txt
+mtrace filter mtrace.out || true
+
+Memory not freed:
+-----------------
+           Address     Size     Caller
+0x0000000002083fd0     0xc0  at 0x7fe113007869
+0x0000000002084110    0x240  at 0x7fe113537c25
+0x0000000002084360    0x240  at 0x7fe113537c25
+0x00000000020845b0    0x240  at 0x7fe113537c25
+0x0000000002084800    0x240  at 0x7fe113537c25
+0x0000000002084a50    0x240  at 0x7fe113537c25
+0x0000000002084ca0    0x240  at 0x7fe113537c25
+0x0000000002084ef0    0x240  at 0x7fe113537c25
+0x0000000002085140    0x240  at 0x7fe113537c25
+0x0000000002085390    0x240  at 0x7fe113537c25
+0x00000000020855e0    0x240  at 0x7fe113537c25
+0x0000000002085830    0x240  at 0x7fe113537c25
+0x0000000002a65ae0   0x1620  at 0x7fe113007869
+0x0000000002a67110     0xa8  at 0x7fe1130078b9
+0x0000000002a671c0    0x240  at 0x7fe113537c25
+0x0000000002a67410    0x240  at 0x7fe113537c25
+0x0000000002a67660    0x240  at 0x7fe113537c25
+0x0000000002a678b0    0x240  at 0x7fe113537c25
+0x0000000002a67b00    0x240  at 0x7fe113537c25
+0x0000000002a67d50    0x240  at 0x7fe113537c25
+0x0000000002a67fa0    0x240  at 0x7fe113537c25
+0x0000000002a681f0    0x240  at 0x7fe113537c25
+
+The speedup is ~9.0x. The correct output is produced.
+
+6. Explanation of modifications:
+
+   In func0, #pragma omp parallel for constructs are added to each for loop, with number of threads set to be 12.
+   Also, nowait clause is added because the operations on the array elements don't have dependencies on each other.
+
+   In func1, #pragma omp parallel for constructs are added to each for loop, with 20 threads. The first for loop has
+   nowait clause because operations have no dependencies. The second for loop has private clause for j, index_X and index_Y
+   while the third for loop has private clause for j to reduce thrashing.
+
+   In func2, #pragma omp parallel for constructs are added to each for loop, with 20 threads. The second for loop has a reduction
+   clause to accumulate result in sunWeights. Similarly in func3, results are accumulated in estimate_x and estimate_y.
+
+   In func4, #pragma omp simd construct is added to the for loop because each element in the array is having the same operation. Trial
+   and error indicates that for this function simd is faster than parallel construct.
+
+   In func5, #pragma omp parallel for constructs are added to both for loops, with 20 threads. The first for loop has private(i) clause
+   because each iteration is essentially having its own unique value for i. For the second for loop, nowait clause is added due to lack
+   of dependencies.
